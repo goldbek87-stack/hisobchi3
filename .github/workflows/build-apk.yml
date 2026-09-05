@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: BogвЂliqliklarni oвЂrnatish
+      - name: Bog‘liqliklarni o‘rnatish
         run: npm install
 
       - name: Web fayllarni Android loyihasiga sinxronlash
