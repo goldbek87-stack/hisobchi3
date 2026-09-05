@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Hisobchi</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E9E64">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F4;
+  --card:#FFFFFF;
+  --primary:#1E9E64;
+  --primary-dark:#167A4E;
+  --text:#1F2937;
+  --text-soft:#6B7280;
+  --border:#E7EAEE;
+  --danger:#DC2626;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  font-family:'Inter',system-ui,sans-serif;
+  color:var(--text);
+  min-height:100vh;
+}
+.app{
+  max-width:460px;
+  margin:0 auto;
+  min-height:100vh;
+  background:var(--bg);
+  padding-bottom:88px;
+  position:relative;
+}
+.tab-content{display:none;padding:16px;}
+.tab-content.active{display:block;}
+
+/* top bars */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 2px 10px;
+}
+.topbar h2{font-size:16px;font-weight:700;margin:0;letter-spacing:.01em;}
+.topbar .icon-btn{
+  background:none;border:none;font-size:18px;color:var(--text);cursor:pointer;
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+}
+.date-input{
+  border:none;background:none;font-family:'Inter';font-size:16px;color:var(--text);
+}
+
+/* cards */
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 1px 2px rgba(20,20,30,.04), 0 1px 8px rgba(20,20,30,.03);
+}
+.card-title{font-size:13px;color:var(--text-soft);margin:0 0 6px;}
+.big-amount{font-size:28px;font-weight:700;color:var(--text);margin:0;}
+.big-amount.red{color:#c94b3f;}
+
+/* mic hero */
+.mic-hero{text-align:center;padding:8px 0 4px;}
+.mic-circle{
+  width:76px;height:76px;border-radius:50%;
+  background:var(--primary);
+  border:none;color:#fff;font-size:30px;
+  display:flex;align-items:center;justify-content:center;
+  margin:10px auto;cursor:pointer;
+  box-shadow:0 4px 14px rgba(30,158,100,.35);
+}
+.mic-circle.listening{animation:pulse 1.3s infinite;background:#c94b3f;box-shadow:0 4px 14px rgba(201,75,63,.4);}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(201,75,63,.45);}
+  70%{box-shadow:0 0 0 16px rgba(201,75,63,0);}
+  100%{box-shadow:0 0 0 0 rgba(201,75,63,0);}
+}
+.mic-hint{font-size:12.5px;color:var(--text-soft);}
+
+/* category rows */
+.cat-row{
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+.cat-row:last-child{border-bottom:none;}
+.cat-icon{
+  width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.cat-name{flex:1;font-size:14px;}
+.cat-amt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;}
+.cat-pct{font-size:11.5px;color:var(--text-soft);width:34px;text-align:right;}
+
+.link-row{
+  text-align:center;color:var(--primary);font-size:13px;font-weight:600;
+  padding:10px 0 2px;cursor:pointer;
+}
+
+/* month nav */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.month-nav button{background:none;border:none;font-size:18px;color:var(--text);cursor:pointer;padding:4px 10px;}
+.month-nav .m-label{font-weight:700;font-size:15px;}
+
+/* subtabs / pill tabs */
+.pill-tabs{display:flex;gap:6px;margin-bottom:12px;background:#F1F3F6;padding:4px;border-radius:10px;}
+.pill-tabs button{
+  flex:1;padding:8px 6px;font-size:12.5px;border:none;background:none;border-radius:8px;cursor:pointer;color:var(--text-soft);font-weight:600;
+}
+.pill-tabs button.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+
+/* entry list (day list) */
+.entry-row{
+  display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;
+}
+.entry-row:last-child{border-bottom:none;}
+.entry-time{font-size:11px;color:var(--text-soft);width:38px;flex-shrink:0;}
+.entry-main{flex:1;min-width:0;}
+.entry-note{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.entry-cat-name{font-size:11.5px;color:var(--text-soft);}
+.entry-amt{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+
+/* back header */
+.back-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.back-header .icon-btn{font-size:20px;}
+.back-header h2{font-size:15px;font-weight:700;flex:1;}
+
+/* categories grid */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cat-card{
+  background:var(--card);border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 1px 2px rgba(20,20,30,.04);position:relative;cursor:pointer;
+}
+.cat-card .cat-icon{width:34px;height:34px;border-radius:10px;font-size:16px;}
+.cat-card .name{font-size:13px;font-weight:500;}
+.cat-card .menu-dot{position:absolute;top:8px;right:10px;font-size:14px;color:var(--text-soft);}
+
+.btn{border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;width:100%;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-ghost{background:#F1F3F6;color:var(--text);}
+.btn-danger{background:#FDE8E8;color:var(--danger);}
+
+/* forms */
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11.5px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+.field input, .field select, .field textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;font-size:14px;font-family:'Inter';color:var(--text);background:#fff;
+}
+.two-col{display:flex;gap:10px;}
+.two-col .field{flex:1;}
+.swatch-row{display:flex;flex-wrap:wrap;gap:8px;}
+.swatch{width:32px;height:32px;border-radius:9px;cursor:pointer;border:2px solid transparent;}
+.swatch.active{border-color:var(--text);}
+
+/* search */
+.search-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:14px;}
+.search-box input{border:none;outline:none;flex:1;font-size:14px;}
+.chip-group{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.chip-btn{padding:7px 13px;border-radius:18px;border:1px solid var(--border);background:#fff;font-size:12.5px;cursor:pointer;color:var(--text);}
+.chip-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.quick-chip{
+  display:block;width:100%;text-align:left;background:#F1F9F5;border:1px solid #d3ecdf;color:var(--primary-dark);
+  border-radius:9px;padding:10px 12px;font-size:13px;margin-bottom:8px;cursor:pointer;
+}
+
+/* bottom nav */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  max-width:460px;margin:0 auto;
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  z-index:20;
+}
+.nav-btn{
+  background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10.5px;color:var(--text-soft);cursor:pointer;padding:4px 8px;
+}
+.nav-btn .ico{font-size:19px;}
+.nav-btn.active{color:var(--primary);font-weight:600;}
+.nav-fab{
+  width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  margin-top:-26px;box-shadow:0 3px 10px rgba(30,158,100,.4);border:3px solid #fff;cursor:pointer;
+}
+
+/* overlays / modals */
+.overlay{
+  position:fixed;inset:0;background:rgba(20,24,28,.45);display:none;
+  align-items:flex-end;justify-content:center;z-index:50;
+}
+.overlay.show{display:flex;}
+.sheet{
+  background:var(--bg);width:100%;max-width:460px;border-radius:20px 20px 0 0;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow-y:auto;
+}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sheet-head h3{font-size:16px;margin:0;}
+.sheet-head .icon-btn{font-size:19px;}
+
+.voice-item{
+  background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid var(--border);
+}
+.voice-item .row1{display:flex;gap:8px;margin-bottom:8px;}
+.voice-item .row1 input:first-child{width:110px;flex-shrink:0;}
+.voice-item select{font-size:12.5px;}
+.voice-item .rm{background:none;border:none;color:var(--text-soft);font-size:16px;cursor:pointer;float:right;}
+
+.transcript-box{
+  font-size:13.5px;color:var(--text-soft);background:#F1F3F6;border-radius:10px;padding:10px 12px;min-height:20px;margin:10px 0;
+}
+.empty{text-align:center;color:var(--text-soft);font-size:13px;padding:26px 12px;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============ HOME TAB ============ -->
+  <section class="tab-content active" id="tab-home">
+    <div id="home-summary-view"></div>
+    <div id="home-daylist-view" style="display:none;"></div>
+  </section>
+
+  <!-- ============ REPORT TAB ============ -->
+  <section class="tab-content" id="tab-report">
+    <div id="report-main-view"></div>
+    <div id="report-analytics-view" style="display:none;"></div>
+  </section>
+
+  <!-- ============ CATEGORIES TAB ============ -->
+  <section class="tab-content" id="tab-categories"></section>
+
+  <!-- ============ SEARCH TAB ============ -->
+  <section class="tab-content" id="tab-search"></section>
+
+  <!-- ============ SETTINGS TAB ============ -->
+  <section class="tab-content" id="tab-settings"></section>
+
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-action="switch-tab" data-tab="home"><span class="ico">🏠</span>Asosiy</button>
+  <button class="nav-btn" data-action="switch-tab" data-tab="report"><span class="ico">📊</span>Hisobot</button>
+  <button class="nav-fab" data-action="open-voice">🎤</button>
+  <button class="nav-btn" data-action="switch-tab" data-tab="search"><span class="ico">🔍</span>Qidirish</button>
+  <button class="nav-btn" data-action="switch-tab" data-tab="settings"><span class="ico">⚙️</span>Sozlamalar</button>
+</nav>
+
+<!-- VOICE OVERLAY -->
+<div class="overlay" id="voiceOverlay">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Ovoz orqali qo‘shish</h3>
+      <button class="icon-btn" data-action="close-overlay" data-overlay="voiceOverlay">✕</button>
+    </div>
+    <div class="mic-hero">
+      <button class="mic-circle" id="micBtn">🎤</button>
+      <div class="mic-hint" id="micStatus">Bosing va nima uchun qancha sarflaganingizni ayting</div>
+    </div>
+    <div class="transcript-box" id="transcriptBox"></div>
+    <div id="voiceItemsWrap"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn btn-ghost" data-action="add-voice-item" style="display:none;" id="addVoiceItemBtn">+ Yana band qo‘shish</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-ghost" data-action="close-overlay" data-overlay="voiceOverlay">Bekor qilish</button>
+      <button class="btn btn-primary" data-action="save-voice-items" id="saveVoiceBtn" style="display:none;">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT EXPENSE OVERLAY -->
+<div class="overlay" id="editOverlay">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Xarajat tafsiloti</h3>
+      <button class="icon-btn" data-action="close-overlay" data-overlay="editOverlay">✓</button>
+    </div>
+    <div id="editFormWrap"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn btn-primary" data-action="save-edit-expense">Saqlash</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-danger" data-action="delete-edit-expense">O‘chirish</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY EDIT OVERLAY -->
+<div class="overlay" id="categoryOverlay">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3 id="categoryModalTitle">Yangi bo‘lim</h3>
+      <button class="icon-btn" data-action="close-overlay" data-overlay="categoryOverlay">✕</button>
+    </div>
+    <div id="categoryFormWrap"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn btn-primary" data-action="save-category">Saqlash</button>
+    </div>
+    <div style="margin-top:10px;" id="categoryDeleteWrap"></div>
+  </div>
+</div>
+
+<input type="file" id="importFileInput" accept="application/json" style="display:none;">
+
+<script>
+/* ============================================================
+   STORAGE ABSTRACTION
+   window.storage only exists inside Claude.ai artifact preview.
+   Once this app is hosted on its own (GitHub Pages / wrapped as
+   an APK), it must rely on the browser's own localStorage.
+   This wrapper tries localStorage first and silently falls back
+   to an in-memory store if it's unavailable, so it never crashes.
+   ============================================================ */
+let memoryStore = {};
+const DB = {
+  get(key){
+    try{ const v = localStorage.getItem(key); return v; }
+    catch(e){ return memoryStore[key] ?? null; }
+  },
+  set(key, value){
+    try{ localStorage.setItem(key, value); }
+    catch(e){ memoryStore[key] = value; }
+  }
+};
+
+/* ============================================================ DATA */
+const DEFAULT_CATEGORIES = [
+  {key:'rozgor', name:"Ro‘zg‘or", icon:'🧺', color:'#1E9E64', bg:'#E6F7EE'},
+  {key:'yolkira', name:"Yo‘l-kira", icon:'🚗', color:'#2563EB', bg:'#E8F0FE'},
+  {key:'kochadagi', name:"Ko‘chadagi xarajat", icon:'☕', color:'#F97316', bg:'#FFF1E6'},
+  {key:'kiyim', name:"Kiyim-kechak", icon:'👕', color:'#9333EA', bg:'#F3E8FF'},
+  {key:'sogliq', name:"Sog‘liq", icon:'❤️', color:'#DC2626', bg:'#FDE8E8'},
+  {key:'oila', name:"Oila va bolalar", icon:'👨‍👩‍👧', color:'#0D9488', bg:'#E6FBF8'},
+  {key:'uyjoy', name:"Uy-joy", icon:'🏠', color:'#16A34A', bg:'#E6F7EE'},
+  {key:'aloqa', name:"Aloqa va internet", icon:'📶', color:'#2563EB', bg:'#E8F0FE'},
+  {key:'ish', name:"Ish / biznes", icon:'💼', color:'#92400E', bg:'#F5EDE3'},
+  {key:'sovga', name:"Sovg‘a", icon:'🎁', color:'#DB2777', bg:'#FCE7F3'},
+  {key:'kongilochar', name:"Ko‘ngilochar", icon:'🎮', color:'#7C3AED', bg:'#F3E8FF'},
+  {key:'kutilmagan', name:"Kutilmagan xarajat", icon:'⚠️', color:'#DC2626', bg:'#FEE2E2'},
+  {key:'boshqa', name:"Boshqa", icon:'⋯', color:'#64748B', bg:'#F1F5F9'}
+];
+const SWATCHES = ['#1E9E64','#2563EB','#F97316','#9333EA','#DC2626','#0D9488','#16A34A','#92400E','#DB2777','#7C3AED','#64748B','#0EA5E9'];
+const MONTH_NAMES = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+const WEEKDAYS = ['Yak','Dush','Sesh','Chor','Pay','Jum','Shan'];
+
+let expenses = [];
+let categories = [...DEFAULT_CATEGORIES];
+let currentTab = 'home';
+let selectedDate = todayISO();
+let homeShowingDayList = false;
+let reportMonth = new Date().getMonth();
+let reportYear = new Date().getFullYear();
+let reportSubtab = 'categories';
+let showingAnalytics = false;
+let analyticsTab = 'umumiy';
+let editingExpenseId = null;
+let editingCategoryKey = null;
+let voiceItems = [];
+let micLang = 'uz-UZ';
+
+/* ============================================================ HELPERS */
+function todayISO(){ const d = new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function fmt(n){ return Math.round(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+function uid(){ return 'x_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
+function catByKey(key){ return categories.find(c=>c.key===key) || categories.find(c=>c.key==='boshqa'); }
+function dayTitle(iso){
+  const d = new Date(iso+'T00:00:00');
+  return d.getDate()+' '+MONTH_NAMES[d.getMonth()]+', '+WEEKDAYS[d.getDay()];
+}
+function loadAll(){
+  try{ expenses = JSON.parse(DB.get('expenses') || '[]'); }catch(e){ expenses = []; }
+  try{ categories = JSON.parse(DB.get('categories') || JSON.stringify(DEFAULT_CATEGORIES)); }catch(e){ categories = [...DEFAULT_CATEGORIES]; }
+  micLang = DB.get('micLang') || 'uz-UZ';
+}
+function persistExpenses(){ DB.set('expenses', JSON.stringify(expenses)); }
+function persistCategories(){ DB.set('categories', JSON.stringify(categories)); }
+
+function expensesForDate(iso){ return expenses.filter(e=>e.dateISO===iso); }
+function expensesForMonth(y,m){ return expenses.filter(e=>{ const d=new Date(e.dateISO+'T00:00:00'); return d.getFullYear()===y && d.getMonth()===m; }); }
+function sumOf(list){ return list.reduce((s,e)=>s+e.amount,0); }
+
+function categoryBreakdown(list){
+  const map = {};
+  list.forEach(e=>{ map[e.categoryKey] = (map[e.categoryKey]||0) + e.amount; });
+  const total = sumOf(list) || 1;
+  return Object.entries(map).map(([key,amt])=>({ cat: catByKey(key), amount: amt, pct: Math.round(amt/total*100) }))
+    .sort((a,b)=>b.amount-a.amount);
+}
+
+/* ============================================================ CATEGORY GUESS + PARSING */
+const KEYWORD_MAP = {
+  rozgor: ['non','sut','go‘sht','gosht','sabzavot','meva','bozor','market','un ','yog‘','tuz','guruch','do‘kon','dokon','mahsulot'],
+  yolkira: ['taksi','taxi','avtobus','metro','benzin','yoqilg‘i','yoqilgi','yandex','yo‘l','yol'],
+  kochadagi: ['tushlik','nonushta','kechki ovqat','kafe','restoran','choyxona','fastfud'],
+  kiyim: ['kiyim','oyoq kiyim','ko‘ylak','koylak','shim','krossovka'],
+  sogliq: ['dori','shifokor','vrach','klinika','dorixona','tish'],
+  oila: ['bola','farzand','maktab','bog‘cha','bogcha','o‘yinchoq','oyinchoq'],
+  uyjoy: ['ijara','kvartira','mebel','ta‘mir','tamir','svet','elektr','gaz','suv','kommunal'],
+  aloqa: ['internet','wifi','telefon','mobil','aloqa'],
+  ish: ['ofis','biznes','xodim'],
+  sovga: ['sovg‘a','sovga','tug‘ilgan kun','tugilgan kun'],
+  kongilochar: ['kino','konsert','o‘yin','oyin','park','bilyar'],
+  kutilmagan: ['jarima','shtraf','favqulodda']
+};
+function guessCategory(text){
+  const t = text.toLowerCase();
+  for(const [key, words] of Object.entries(KEYWORD_MAP)){
+    if(words.some(w => t.includes(w))) return key;
+  }
+  return 'boshqa';
+}
+function parseSegment(raw){
+  let t = raw.trim();
+  let amount = null;
+  const mlnMatch = t.match(/(\d+([.,]\d+)?)\s*(mln|million)/i);
+  const mingMatch = t.match(/(\d+([.,]\d+)?)\s*ming/i);
+  if(mlnMatch){ amount = parseFloat(mlnMatch[1].replace(',','.')) * 1000000; }
+  else if(mingMatch){ amount = parseFloat(mingMatch[1].replace(',','.')) * 1000; }
+  else{
+    const nums = t.match(/\d[\d\s]*\d|\d/g);
+    if(nums){ amount = parseInt(nums.map(s=>s.replace(/\s/g,'')).sort((a,b)=>b.length-a.length)[0], 10); }
+  }
+  // clean note: drop amount phrase + filler verbs
+  let note = t
+    .replace(/\d+([.,]\d+)?\s*(mln|million)/gi,'')
+    .replace(/\d+([.,]\d+)?\s*ming/gi,'')
+    .replace(/\d[\d\s]*\d|\d/g,'')
+    .replace(/\b(sarfladim|oldim|to‘ladim|toladim|xarid qildim|sotib oldim|so‘m|som|ga|uchun)\b/gi,'')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+  note = note.charAt(0).toUpperCase() + note.slice(1);
+  const category = guessCategory(t);
+  return { amount: amount||0, note: note || 'Xarajat', categoryKey: category };
+}
+function parseTranscriptMulti(text){
+  return text.split(',').map(s=>s.trim()).filter(Boolean).map(parseSegment).filter(it=>it.amount>0);
+}
+
+/* ============================================================ RENDER: HOME */
+function renderHome(){
+  document.getElementById('home-summary-view').style.display = homeShowingDayList ? 'none' : 'block';
+  document.getElementById('home-daylist-view').style.display = homeShowingDayList ? 'block' : 'none';
+  if(homeShowingDayList){ renderHomeDayList(); } else { renderHomeSummary(); }
+}
+function renderHomeSummary(){
+  const list = expensesForDate(selectedDate);
+  const total = sumOf(list);
+  const breakdown = categoryBreakdown(list).slice(0,4);
+  const isToday = selectedDate === todayISO();
+  const d = new Date(selectedDate+'T00:00:00');
+  const label = (isToday ? 'BUGUN — ' : '') + d.getDate()+' '+MONTH_NAMES[d.getMonth()].toUpperCase()+', '+d.getFullYear();
+
+  document.getElementById('home-summary-view').innerHTML = `
+    <div class="topbar">
+      <h2>${label}</h2>
+      <input type="date" class="date-input" value="${selectedDate}" data-action="pick-date" style="width:0;opacity:0;position:absolute;">
+      <div>
+        <button class="icon-btn" data-action="switch-tab" data-tab="categories">🗂️</button>
+        <button class="icon-btn" data-action="open-date-picker">📅</button>
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-title">${isToday ? 'Bugungi jami xarajat' : 'Shu kunlik jami xarajat'}</p>
+      <p class="big-amount">${fmt(total)} so‘m</p>
+      <div class="mic-hero">
+        <button class="mic-circle" data-action="open-voice">🎤</button>
+        <div class="mic-hint">Ovoz orqali xarajat qo‘shish<br>(bosing va gapiring)</div>
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-title">Bo‘limlar bo‘yicha</p>
+      ${ breakdown.length ? breakdown.map(b=>`
+        <div class="cat-row">
+          <div class="cat-icon" style="background:${b.cat.bg};">${b.cat.icon}</div>
+          <div class="cat-name">${b.cat.name}</div>
+          <div class="cat-amt">${fmt(b.amount)}</div>
+        </div>
+      `).join('') : '<div class="empty">Hali xarajat yo‘q</div>' }
+      ${ list.length ? '<div class="link-row" data-action="open-daylist">BARCHA XARAJATLAR ›</div>' : '' }
+    </div>
+  `;
+  const dateInput = document.getElementById('__dp');
+}
+function renderHomeDayList(){
+  const list = expensesForDate(selectedDate).sort((a,b)=> b.time.localeCompare(a.time));
+  const total = sumOf(list);
+  document.getElementById('home-daylist-view').innerHTML = `
+    <div class="back-header">
+      <button class="icon-btn" data-action="back-home">←</button>
+      <h2>${dayTitle(selectedDate)}</h2>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-soft);margin-bottom:6px;">
+        <span>Jami</span><span>${fmt(total)} so‘m</span>
+      </div>
+      ${ list.length ? list.map(e=>{
+        const cat = catByKey(e.categoryKey);
+        return `<div class="entry-row" data-action="edit-expense" data-id="${e.id}">
+          <div class="entry-time">${e.time}</div>
+          <div class="cat-icon" style="background:${cat.bg};width:34px;height:34px;font-size:15px;">${cat.icon}</div>
+          <div class="entry-main">
+            <div class="entry-note">${e.note}</div>
+            <div class="entry-cat-name">${cat.name}</div>
+          </div>
+          <div class="entry-amt">${fmt(e.amount)}</div>
+        </div>`;
+      }).join('') : '<div class="empty">Bu kunda xarajat yo‘q</div>' }
+    </div>
+  `;
+}
+
+/* ============================================================ RENDER: REPORT */
+function renderReport(){
+  document.getElementById('report-main-view').style.display = showingAnalytics ? 'none' : 'block';
+  document.getElementById('report-analytics-view').style.display = showingAnalytics ? 'block' : 'none';
+  if(showingAnalytics) renderAnalytics(); else renderReportMain();
+}
+function renderReportMain(){
+  const list = expensesForMonth(reportYear, reportMonth);
+  const total = sumOf(list);
+  const breakdown = categoryBreakdown(list);
+
+  let bodyHtml = '';
+  if(reportSubtab === 'categories'){
+    bodyHtml = breakdown.length ? breakdown.map(b=>`
+      <div class="cat-row">
+        <div class="cat-icon" style="background:${b.cat.bg};">${b.cat.icon}</div>
+        <div class="cat-name">${b.cat.name}</div>
+        <div class="cat-amt">${fmt(b.amount)}</div>
+        <div class="cat-pct">${b.pct}%</div>
+      </div>
+    `).join('') : '<div class="empty">Bu oyda xarajat yo‘q</div>';
+  } else {
+    const byDay = {};
+    list.forEach(e=>{ byDay[e.dateISO] = (byDay[e.dateISO]||0) + e.amount; });
+    const days = Object.keys(byDay).sort((a,b)=>new Date(b)-new Date(a));
+    bodyHtml = days.length ? days.map(iso=>`
+      <div class="cat-row" data-action="goto-day" data-date="${iso}" style="cursor:pointer;">
+        <div class="cat-name">${dayTitle(iso)}</div>
+        <div class="cat-amt">${fmt(byDay[iso])}</div>
+      </div>
+    `).join('') : '<div class="empty">Bu oyda xarajat yo‘q</div>';
+  }
+
+  document.getElementById('report-main-view').innerHTML = `
+    <div class="topbar"><h2>Oy bo‘yicha hisobot</h2></div>
+    <div class="card">
+      <div class="month-nav">
+        <button data-action="report-month-prev">‹</button>
+        <div class="m-label">${MONTH_NAMES[reportMonth]}, ${reportYear}</div>
+        <button data-action="report-month-next">›</button>
+      </div>
+      <p class="card-title" style="margin-top:10px;">Oy jami xarajat</p>
+      <p class="big-amount">${fmt(total)} so‘m</p>
+    </div>
+    <div class="card">
+      <div class="pill-tabs">
+        <button class="${reportSubtab==='categories'?'active':''}" data-action="report-subtab" data-sub="categories">Bo‘limlar bo‘yicha</button>
+        <button class="${reportSubtab==='days'?'active':''}" data-action="report-subtab" data-sub="days">Kunlar bo‘yicha</button>
+      </div>
+      ${bodyHtml}
+      ${ list.length ? '<div class="link-row" data-action="open-analytics">TAHLILNI KO‘RISH ›</div>' : '' }
+    </div>
+  `;
+}
+function renderAnalytics(){
+  const list = expensesForMonth(reportYear, reportMonth);
+  const total = sumOf(list);
+  const breakdown = categoryBreakdown(list);
+  const prevM = reportMonth===0?11:reportMonth-1;
+  const prevY = reportMonth===0?reportYear-1:reportYear;
+  const prevTotal = sumOf(expensesForMonth(prevY, prevM));
+  const diffPct = prevTotal ? Math.round(((total-prevTotal)/prevTotal)*100) : 0;
+
+  const byDayMap = {};
+  list.forEach(e=>{ byDayMap[e.dateISO] = (byDayMap[e.dateISO]||0)+e.amount; });
+  const daysInMonth = new Date(reportYear, reportMonth+1, 0).getDate();
+  const dailyTotals = [];
+  for(let d=1; d<=daysInMonth; d++){
+    const iso = reportYear+'-'+pad(reportMonth+1)+'-'+pad(d);
+    dailyTotals.push({day:d, total: byDayMap[iso]||0});
+  }
+  const activeDays = Object.keys(byDayMap).length || 1;
+  const avgPerDay = total / activeDays;
+  let topDay = {day:'-', total:0};
+  dailyTotals.forEach(d=>{ if(d.total>topDay.total) topDay = d; });
+  const topCat = breakdown[0];
+
+  let tabBody = '';
+  if(analyticsTab === 'umumiy'){
+    tabBody = `
+      <div style="display:flex;gap:16px;align-items:center;">
+        <canvas id="donutCanvas" width="150" height="150"></canvas>
+        <div style="flex:1;">
+          ${breakdown.slice(0,6).map(b=>`
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;margin-bottom:6px;">
+              <span style="width:9px;height:9px;border-radius:50%;background:${b.cat.color};display:inline-block;"></span>
+              <span style="flex:1;">${b.cat.name}</span>
+              <span style="color:var(--text-soft);">${b.pct}%</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;box-shadow:none;border:1px solid var(--border);">
+        <p class="card-title" style="margin-bottom:10px;">Muhim ma’lumotlar</p>
+        <div class="cat-row"><div class="cat-name">Kuniga o‘rtacha</div><div class="cat-amt">${fmt(avgPerDay)} so‘m</div></div>
+        <div class="cat-row"><div class="cat-name">Eng ko‘p xarajat qilingan kun</div><div class="cat-amt">${topDay.day} ${MONTH_NAMES[reportMonth]} (${fmt(topDay.total)})</div></div>
+        <div class="cat-row"><div class="cat-name">Eng ko‘p bo‘lim</div><div class="cat-amt">${topCat? topCat.cat.name+' ('+fmt(topCat.amount)+')' : '—'}</div></div>
+        <div class="cat-row"><div class="cat-name">O‘tgan oyga nisbatan</div><div class="cat-amt" style="color:${diffPct>=0?'#c94b3f':'#1E9E64'};">${diffPct>=0?'+':''}${diffPct}%</div></div>
+      </div>
+    `;
+  } else if(analyticsTab === 'taqqoslash'){
+    const prevBreakdown = categoryBreakdown(expensesForMonth(prevY, prevM));
+    const prevMap = {}; prevBreakdown.forEach(b=>prevMap[b.cat.key]=b.amount);
+    tabBody = breakdown.map(b=>{
+      const prevAmt = prevMap[b.cat.key]||0;
+      const maxAmt = Math.max(b.amount, prevAmt, 1);
+      return `<div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;">
+          <span>${b.cat.icon} ${b.cat.name}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <div style="height:8px;border-radius:4px;background:${b.cat.color};width:${(b.amount/maxAmt*100)}%;min-width:4px;"></div>
+          <span style="font-size:11px;color:var(--text-soft);">${fmt(b.amount)} (shu oy)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="height:8px;border-radius:4px;background:#D1D5DB;width:${(prevAmt/maxAmt*100)}%;min-width:4px;"></div>
+          <span style="font-size:11px;color:var(--text-soft);">${fmt(prevAmt)} (o‘tgan oy)</span>
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty">Ma’lumot yo‘q</div>';
+  } else if(analyticsTab === 'trend'){
+    tabBody = `<canvas id="trendCanvas" width="320" height="140" style="width:100%;height:140px;"></canvas>
+      <p style="font-size:11.5px;color:var(--text-soft);text-align:center;margin-top:6px;">${MONTH_NAMES[reportMonth]} oyidagi kunlik xarajatlar</p>`;
+  } else if(analyticsTab === 'top'){
+    const top = [...list].sort((a,b)=>b.amount-a.amount).slice(0,10);
+    tabBody = top.length ? top.map(e=>{
+      const cat = catByKey(e.categoryKey);
+      return `<div class="cat-row">
+        <div class="cat-icon" style="background:${cat.bg};">${cat.icon}</div>
+        <div class="cat-name">${e.note}<div style="font-size:11px;color:var(--text-soft);">${dayTitle(e.dateISO)} · ${cat.name}</div></div>
+        <div class="cat-amt">${fmt(e.amount)}</div>
+      </div>`;
+    }).join('') : '<div class="empty">Ma’lumot yo‘q</div>';
+  }
+
+  document.getElementById('report-analytics-view').innerHTML = `
+    <div class="back-header">
+      <button class="icon-btn" data-action="back-report">←</button>
+      <h2>Tahlil</h2>
+    </div>
+    <div class="card">
+      <div class="pill-tabs">
+        <button class="${analyticsTab==='umumiy'?'active':''}" data-action="analytics-tab" data-sub="umumiy">Umumiy</button>
+        <button class="${analyticsTab==='taqqoslash'?'active':''}" data-action="analytics-tab" data-sub="taqqoslash">Taqqoslash</button>
+        <button class="${analyticsTab==='trend'?'active':''}" data-action="analytics-tab" data-sub="trend">Trend</button>
+        <button class="${analyticsTab==='top'?'active':''}" data-action="analytics-tab" data-sub="top">Top</button>
+      </div>
+      ${tabBody}
+    </div>
+  `;
+  if(analyticsTab==='umumiy'){
+    drawDonut('donutCanvas', breakdown.map(b=>({value:b.amount,color:b.cat.color})), 'jami', total);
+  }
+  if(analyticsTab==='trend'){
+    drawTrend('trendCanvas', dailyTotals);
+  }
+}
+function drawDonut(canvasId, items, centerLabel, centerValue){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if(!ctx) return;
+  const w=canvas.width, h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const cx=w/2, cy=h/2, rOuter=Math.min(w,h)/2-4, rInner=rOuter*0.62;
+  const total = items.reduce((s,i)=>s+i.value,0) || 1;
+  let start = -Math.PI/2;
+  items.forEach(it=>{
+    const angle = (it.value/total) * Math.PI*2;
+    if(angle<=0) return;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,rOuter,start,start+angle);
+    ctx.closePath(); ctx.fillStyle = it.color; ctx.fill();
+    start += angle;
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,rInner,0,Math.PI*2); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+  ctx.fillStyle = '#1F2937'; ctx.textAlign='center';
+  ctx.font = '700 14px Inter, sans-serif';
+  ctx.fillText(fmt(centerValue), cx, cy-1);
+  ctx.font = '400 9.5px Inter, sans-serif'; ctx.fillStyle='#6B7280';
+  ctx.fillText(centerLabel+' so‘m', cx, cy+13);
+}
+function drawTrend(canvasId, dailyTotals){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if(!ctx) return;
+  const w=canvas.width, h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const max = Math.max(...dailyTotals.map(d=>d.total), 1);
+  const barW = w/dailyTotals.length;
+  dailyTotals.forEach((d,i)=>{
+    const barH = (d.total/max) * (h-18);
+    ctx.fillStyle = d.total>0 ? '#1E9E64' : '#E7EAEE';
+    ctx.fillRect(i*barW+1, h-barH-14, Math.max(barW-2,1), Math.max(barH,2));
+  });
+  ctx.strokeStyle='#E5E7EB'; ctx.beginPath(); ctx.moveTo(0,h-14); ctx.lineTo(w,h-14); ctx.stroke();
+}
+
+/* ============================================================ RENDER: CATEGORIES */
+function renderCategories(){
+  document.getElementById('tab-categories').innerHTML = `
+    <div class="back-header">
+      <button class="icon-btn" data-action="switch-tab" data-tab="home">←</button>
+      <h2>Bo‘limlar</h2>
+    </div>
+    <div class="cat-grid">
+      ${categories.map(c=>`
+        <div class="cat-card" data-action="edit-category" data-key="${c.key}">
+          <div class="cat-icon" style="background:${c.bg};">${c.icon}</div>
+          <div class="name">${c.name}</div>
+          <span class="menu-dot">⋯</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" data-action="open-add-category">+ Yangi bo‘lim qo‘shish</button>
+    </div>
+  `;
+}
+
+/* ============================================================ RENDER: SEARCH */
+let searchState = { q:'', range:'oy', catKey:'all', min:'', max:'', results:null };
+function renderSearch(){
+  const quick = [
+    {label:"Eng ko‘p xarajat qilingan kun qaysi?", action:()=>quickTopDay()},
+    {label:"O‘tgan oyda ro‘zg‘orga qancha ketdi?", action:()=>quickCategoryMonth('rozgor', -1)},
+    {label:"Shu oyda yo‘l-kiraga qancha sarflaganman?", action:()=>quickCategoryMonth('yolkira', 0)},
+  ];
+  document.getElementById('tab-search').innerHTML = `
+    <div class="topbar"><h2>Qidirish</h2></div>
+    <div class="search-box">
+      <span>🔎</span>
+      <input type="text" id="searchQ" placeholder="Izoh bo‘yicha qidirish..." value="${searchState.q}">
+    </div>
+    <p class="card-title">Davr</p>
+    <div class="chip-group">
+      ${['bugun','7kun','oy','barchasi'].map(r=>`<button class="chip-btn ${searchState.range===r?'active':''}" data-action="search-range" data-range="${r}">${ {bugun:'Bugun','7kun':'7 kun',oy:'Oy',barchasi:'Barchasi'}[r] }</button>`).join('')}
+    </div>
+    <p class="card-title">Bo‘lim</p>
+    <select class="field" id="searchCat" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:14px;">
+      <option value="all">Barchasi</option>
+      ${categories.map(c=>`<option value="${c.key}" ${searchState.catKey===c.key?'selected':''}>${c.name}</option>`).join('')}
+    </select>
+    <div class="two-col">
+      <div class="field"><label>Minimal summa</label><input type="number" id="searchMin" value="${searchState.min}"></div>
+      <div class="field"><label>Maksimal summa</label><input type="number" id="searchMax" value="${searchState.max}"></div>
+    </div>
+    <button class="btn btn-primary" data-action="run-search" style="margin-bottom:16px;">Natijalarni ko‘rish</button>
+
+    <p class="card-title">Tez so‘rovlar</p>
+    ${quick.map((q,i)=>`<button class="quick-chip" data-action="quick-search" data-idx="${i}">${q.label}</button>`).join('')}
+
+    <div id="searchResultsWrap" style="margin-top:14px;"></div>
+  `;
+  window.__quickActions = quick;
+  renderSearchResults();
+}
+function renderSearchResults(){
+  const wrap = document.getElementById('searchResultsWrap');
+  if(!wrap) return;
+  if(searchState.results === null){ wrap.innerHTML=''; return; }
+  const list = searchState.results;
+  const total = sumOf(list);
+  wrap.innerHTML = `
+    <div class="card">
+      <p class="card-title">Natija (${list.length} ta) — jami ${fmt(total)} so‘m</p>
+      ${ list.length ? list.sort((a,b)=>new Date(b.dateISO)-new Date(a.dateISO)).map(e=>{
+        const cat = catByKey(e.categoryKey);
+        return `<div class="entry-row" data-action="edit-expense" data-id="${e.id}">
+          <div class="entry-time">${e.time}</div>
+          <div class="cat-icon" style="background:${cat.bg};width:34px;height:34px;font-size:15px;">${cat.icon}</div>
+          <div class="entry-main"><div class="entry-note">${e.note}</div><div class="entry-cat-name">${dayTitle(e.dateISO)} · ${cat.name}</div></div>
+          <div class="entry-amt">${fmt(e.amount)}</div>
+        </div>`;
+      }).join('') : '<div class="empty">Hech narsa topilmadi</div>' }
+    </div>
+  `;
+}
+function runSearch(){
+  searchState.q = document.getElementById('searchQ').value.trim().toLowerCase();
+  searchState.catKey = document.getElementById('searchCat').value;
+  searchState.min = document.getElementById('searchMin').value;
+  searchState.max = document.getElementById('searchMax').value;
+
+  let list = [...expenses];
+  const now = new Date();
+  if(searchState.range === 'bugun'){ list = list.filter(e=>e.dateISO===todayISO()); }
+  else if(searchState.range === '7kun'){
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-7);
+    list = list.filter(e=> new Date(e.dateISO) >= cutoff);
+  } else if(searchState.range === 'oy'){
+    list = expensesForMonth(now.getFullYear(), now.getMonth());
+  }
+  if(searchState.catKey !== 'all'){ list = list.filter(e=>e.categoryKey===searchState.catKey); }
+  if(searchState.q){ list = list.filter(e=>e.note.toLowerCase().includes(searchState.q)); }
+  if(searchState.min){ list = list.filter(e=>e.amount >= parseFloat(searchState.min)); }
+  if(searchState.max){ list = list.filter(e=>e.amount <= parseFloat(searchState.max)); }
+  searchState.results = list;
+  renderSearchResults();
+}
+function quickTopDay(){
+  const now = new Date();
+  const list = expensesForMonth(now.getFullYear(), now.getMonth());
+  const byDay = {}; list.forEach(e=>byDay[e.dateISO]=(byDay[e.dateISO]||0)+e.amount);
+  const sorted = Object.entries(byDay).sort((a,b)=>b[1]-a[1]);
+  searchState.results = sorted.length ? expensesForDate(sorted[0][0]) : [];
+  renderSearchResults();
+}
+function quickCategoryMonth(catKey, monthOffset){
+  const now = new Date();
+  let m = now.getMonth()+monthOffset, y = now.getFullYear();
+  if(m<0){ m=11; y--; }
+  searchState.results = expensesForMonth(y,m).filter(e=>e.categoryKey===catKey);
+  renderSearchResults();
+}
+
+/* ============================================================ RENDER: SETTINGS */
+function renderSettings(){
+  document.getElementById('tab-settings').innerHTML = `
+    <div class="topbar"><h2>Sozlamalar</h2></div>
+    <div class="card">
+      <p class="card-title">Bo‘limlar</p>
+      <button class="btn btn-ghost" data-action="switch-tab" data-tab="categories">🗂️ Bo‘limlarni boshqarish</button>
+    </div>
+    <div class="card">
+      <p class="card-title">Ovoz tili</p>
+      <select id="micLangSelect" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;">
+        <option value="uz-UZ" ${micLang==='uz-UZ'?'selected':''}>O‘zbekcha</option>
+        <option value="ru-RU" ${micLang==='ru-RU'?'selected':''}>Ruscha</option>
+        <option value="en-US" ${micLang==='en-US'?'selected':''}>Inglizcha</option>
+      </select>
+    </div>
+    <div class="card">
+      <p class="card-title">Zaxira nusxa</p>
+      <p style="font-size:12.5px;color:var(--text-soft);margin-top:0;">Ma’lumotlar shu qurilmada saqlanadi. Boshqa telefonga ko‘chirish yoki yo‘qotmaslik uchun fayl qilib yuklab oling.</p>
+      <button class="btn btn-ghost" data-action="export-backup" style="margin-bottom:8px;">⬇️ Zaxira nusxani yuklab olish</button>
+      <button class="btn btn-ghost" data-action="import-backup-trigger">⬆️ Zaxira nusxadan tiklash</button>
+    </div>
+    <div class="card">
+      <p class="card-title">Xavfli hudud</p>
+      <button class="btn btn-danger" data-action="clear-data">Barcha ma’lumotlarni o‘chirish</button>
+    </div>
+    <div class="card" style="box-shadow:none;border:1px solid var(--border);">
+      <p class="card-title" style="margin-bottom:4px;">Hisobchi</p>
+      <p style="font-size:12px;color:var(--text-soft);margin:0;">Shaxsiy xarajat hisoboti — ovozli kiritish, kunlik/oylik hisobot va bo‘limlar bo‘yicha tahlil.</p>
+    </div>
+  `;
+  document.getElementById('micLangSelect').addEventListener('change', (e)=>{
+    micLang = e.target.value; DB.set('micLang', micLang);
+  });
+}
+
+/* ============================================================ VOICE MODAL */
+function openVoiceOverlay(){
+  voiceItems = [];
+  document.getElementById('transcriptBox').textContent = '';
+  document.getElementById('micStatus').textContent = 'Bosing va nima uchun qancha sarflaganingizni ayting';
+  renderVoiceItems();
+  showOverlay('voiceOverlay');
+}
+function renderVoiceItems(){
+  const wrap = document.getElementById('voiceItemsWrap');
+  wrap.innerHTML = voiceItems.map((it,i)=>`
+    <div class="voice-item">
+      <button class="rm" data-action="remove-voice-item" data-idx="${i}">✕</button>
+      <div class="row1">
+        <input type="number" placeholder="Summa" value="${it.amount||''}" data-action="voice-amount" data-idx="${i}">
+        <input type="text" placeholder="Izoh" value="${it.note||''}" data-action="voice-note" data-idx="${i}">
+      </div>
+      <select data-action="voice-cat" data-idx="${i}">
+        ${categories.map(c=>`<option value="${c.key}" ${it.categoryKey===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
+      </select>
+    </div>
+  `).join('');
+  document.getElementById('addVoiceItemBtn').style.display = voiceItems.length ? 'block' : 'none';
+  document.getElementById('saveVoiceBtn').style.display = voiceItems.length ? 'block' : 'none';
+}
+
+/* ============================================================ EDIT EXPENSE MODAL */
+function openEditExpense(id){
+  editingExpenseId = id;
+  const e = expenses.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('editFormWrap').innerHTML = `
+    <div class="two-col">
+      <div class="field"><label>Sana</label><input type="date" id="ef_date" value="${e.dateISO}"></div>
+      <div class="field"><label>Vaqt</label><input type="time" id="ef_time" value="${e.time}"></div>
+    </div>
+    <div class="field"><label>Nomi / izoh</label><input type="text" id="ef_note" value="${e.note}"></div>
+    <div class="field"><label>Bo‘lim</label>
+      <select id="ef_cat">${categories.map(c=>`<option value="${c.key}" ${e.categoryKey===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Summa (so‘m)</label><input type="number" id="ef_amount" value="${e.amount}"></div>
+  `;
+  showOverlay('editOverlay');
+}
+
+/* ============================================================ CATEGORY MODAL */
+let categorySwatchColor = SWATCHES[0];
+function openCategoryModal(key){
+  editingCategoryKey = key || null;
+  const cat = key ? catByKey(key) : {name:'',icon:'🏷️',color:SWATCHES[0]};
+  categorySwatchColor = cat.color;
+  document.getElementById('categoryModalTitle').textContent = key ? 'Bo‘limni tahrirlash' : 'Yangi bo‘lim';
+  document.getElementById('categoryFormWrap').innerHTML = `
+    <div class="two-col">
+      <div class="field" style="flex:0 0 80px;"><label>Belgi</label><input type="text" id="cf_icon" value="${cat.icon}" maxlength="4"></div>
+      <div class="field"><label>Nomi</label><input type="text" id="cf_name" value="${cat.name}"></div>
+    </div>
+    <p class="card-title">Rang</p>
+    <div class="swatch-row" id="swatchRow">
+      ${SWATCHES.map(s=>`<div class="swatch ${s===categorySwatchColor?'active':''}" style="background:${s};" data-action="pick-swatch" data-color="${s}"></div>`).join('')}
+    </div>
+  `;
+  const delWrap = document.getElementById('categoryDeleteWrap');
+  delWrap.innerHTML = (key && key!=='boshqa') ? `<button class="btn btn-danger" data-action="delete-category">Bo‘limni o‘chirish</button>` : '';
+  showOverlay('categoryOverlay');
+}
+
+/* ============================================================ OVERLAY HELPERS */
+function showOverlay(id){ document.getElementById(id).classList.add('show'); }
+function hideOverlay(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ============================================================ MASTER RENDER */
+function renderAll(){
+  renderHome();
+  renderReport();
+  renderCategories();
+  renderSearch();
+  renderSettings();
+}
+
+/* ============================================================ TAB SWITCH */
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active', el.dataset.tab===tab));
+}
+
+/* ============================================================ EVENT DELEGATION */
+document.addEventListener('click', (e)=>{
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const a = t.dataset.action;
+
+  if(a==='switch-tab'){ switchTab(t.dataset.tab); }
+  else if(a==='open-daylist'){ homeShowingDayList = true; renderHome(); }
+  else if(a==='back-home'){ homeShowingDayList = false; renderHome(); }
+  else if(a==='open-date-picker'){ openNativeDatePicker(); }
+  else if(a==='open-analytics'){ showingAnalytics = true; renderReport(); }
+  else if(a==='back-report'){ showingAnalytics = false; renderReport(); }
+  else if(a==='report-subtab'){ reportSubtab = t.dataset.sub; renderReportMain(); }
+  else if(a==='analytics-tab'){ analyticsTab = t.dataset.sub; renderAnalytics(); }
+  else if(a==='report-month-prev'){ reportMonth--; if(reportMonth<0){reportMonth=11;reportYear--;} renderReportMain(); }
+  else if(a==='report-month-next'){ reportMonth++; if(reportMonth>11){reportMonth=0;reportYear++;} renderReportMain(); }
+  else if(a==='goto-day'){ selectedDate = t.dataset.date; homeShowingDayList = true; switchTab('home'); renderHome(); }
+  else if(a==='edit-expense'){ openEditExpense(t.dataset.id); }
+  else if(a==='save-edit-expense'){ saveEditExpense(); }
+  else if(a==='delete-edit-expense'){ deleteEditExpense(); }
+  else if(a==='close-overlay'){ hideOverlay(t.dataset.overlay); }
+  else if(a==='open-voice'){ openVoiceOverlay(); }
+  else if(a==='add-voice-item'){ voiceItems.push({amount:0, note:'', categoryKey:'boshqa'}); renderVoiceItems(); }
+  else if(a==='remove-voice-item'){ voiceItems.splice(+t.dataset.idx,1); renderVoiceItems(); }
+  else if(a==='save-voice-items'){ saveVoiceItems(); }
+  else if(a==='open-add-category'){ openCategoryModal(null); }
+  else if(a==='edit-category'){ openCategoryModal(t.dataset.key); }
+  else if(a==='pick-swatch'){
+    categorySwatchColor = t.dataset.color;
+    document.querySelectorAll('#swatchRow .swatch').forEach(s=>s.classList.remove('active'));
+    t.classList.add('active');
+  }
+  else if(a==='save-category'){ saveCategory(); }
+  else if(a==='delete-category'){ deleteCategory(); }
+  else if(a==='run-search'){ runSearch(); }
+  else if(a==='search-range'){ searchState.range = t.dataset.range; renderSearch(); }
+  else if(a==='quick-search'){ window.__quickActions[+t.dataset.idx].action(); }
+  else if(a==='export-backup'){ exportBackup(); }
+  else if(a==='import-backup-trigger'){ document.getElementById('importFileInput').click(); }
+  else if(a==='clear-data'){ clearAllData(); }
+});
+
+document.addEventListener('input', (e)=>{
+  const t = e.target;
+  if(t.dataset && t.dataset.action==='voice-amount'){ voiceItems[+t.dataset.idx].amount = parseFloat(t.value)||0; }
+  if(t.dataset && t.dataset.action==='voice-note'){ voiceItems[+t.dataset.idx].note = t.value; }
+});
+document.addEventListener('change', (e)=>{
+  const t = e.target;
+  if(t.dataset && t.dataset.action==='voice-cat'){ voiceItems[+t.dataset.idx].categoryKey = t.value; }
+  if(t.id === '__dateHidden'){ selectedDate = t.value; renderHome(); }
+});
+
+function openNativeDatePicker(){
+  let input = document.getElementById('__dateHidden');
+  if(!input){
+    input = document.createElement('input');
+    input.type='date'; input.id='__dateHidden'; input.style.position='fixed'; input.style.top='-100px';
+    document.body.appendChild(input);
+  }
+  input.value = selectedDate;
+  input.click();
+  input.showPicker && input.showPicker();
+}
+
+function saveEditExpense(){
+  const e = expenses.find(x=>x.id===editingExpenseId);
+  if(!e) return;
+  e.dateISO = document.getElementById('ef_date').value;
+  e.time = document.getElementById('ef_time').value;
+  e.note = document.getElementById('ef_note').value.trim() || 'Xarajat';
+  e.categoryKey = document.getElementById('ef_cat').value;
+  e.amount = parseFloat(document.getElementById('ef_amount').value) || 0;
+  persistExpenses();
+  hideOverlay('editOverlay');
+  renderAll();
+}
+function deleteEditExpense(){
+  expenses = expenses.filter(x=>x.id!==editingExpenseId);
+  persistExpenses();
+  hideOverlay('editOverlay');
+  renderAll();
+}
+
+function saveVoiceItems(){
+  const now = new Date();
+  voiceItems.forEach(it=>{
+    if(!it.amount || it.amount<=0) return;
+    expenses.push({
+      id: uid(), amount: it.amount, note: it.note || 'Xarajat', categoryKey: it.categoryKey || 'boshqa',
+      dateISO: todayISO(), time: pad(now.getHours())+':'+pad(now.getMinutes())
+    });
+  });
+  persistExpenses();
+  hideOverlay('voiceOverlay');
+  selectedDate = todayISO();
+  renderAll();
+}
+
+function saveCategory(){
+  const icon = document.getElementById('cf_icon').value.trim() || '🏷️';
+  const name = document.getElementById('cf_name').value.trim();
+  if(!name) return;
+  if(editingCategoryKey){
+    const cat = catByKey(editingCategoryKey);
+    cat.icon = icon; cat.name = name; cat.color = categorySwatchColor; cat.bg = categorySwatchColor+'22';
+  } else {
+    const key = 'c_'+Date.now();
+    categories.push({key, name, icon, color: categorySwatchColor, bg: categorySwatchColor+'22'});
+  }
+  persistCategories();
+  hideOverlay('categoryOverlay');
+  renderAll();
+}
+function deleteCategory(){
+  if(!editingCategoryKey || editingCategoryKey==='boshqa') return;
+  expenses.forEach(e=>{ if(e.categoryKey===editingCategoryKey) e.categoryKey='boshqa'; });
+  categories = categories.filter(c=>c.key!==editingCategoryKey);
+  persistExpenses(); persistCategories();
+  hideOverlay('categoryOverlay');
+  renderAll();
+}
+
+function exportBackup(){
+  const data = JSON.stringify({expenses, categories}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'hisobchi-zaxira-'+todayISO()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('importFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(data.expenses) expenses = data.expenses;
+      if(data.categories) categories = data.categories;
+      persistExpenses(); persistCategories();
+      renderAll();
+      alert('Zaxira nusxa muvaffaqiyatli tiklandi.');
+    }catch(err){ alert('Fayl noto‘g‘ri formatda.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+function clearAllData(){
+  if(!confirm('Barcha xarajatlar va bo‘limlar o‘chiriladi. Davom etasizmi?')) return;
+  expenses = [];
+  categories = [...DEFAULT_CATEGORIES];
+  persistExpenses(); persistCategories();
+  renderAll();
+}
+
+/* ============================================================ SPEECH RECOGNITION
+   Two code paths:
+   1) Native Android app (built via Capacitor) -> uses the on-device
+      @capacitor-community/speech-recognition plugin, which really works
+      inside a WebView (the plain Web Speech API does NOT).
+   2) Plain browser (GitHub Pages, desktop Chrome, PWA) -> uses the
+      standard Web Speech API (webkitSpeechRecognition).
+   ============================================================ */
+const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+let listening = false;
+
+function finishListening(text){
+  listening = false;
+  document.getElementById('micBtn').classList.remove('listening');
+  if(text){
+    voiceItems = parseTranscriptMulti(text);
+    if(voiceItems.length===0) voiceItems = [{amount:0, note:text, categoryKey:'boshqa'}];
+    document.getElementById('micStatus').textContent = 'Tayyor — quyida tekshirib saqlang';
+    renderVoiceItems();
+  } else {
+    document.getElementById('micStatus').textContent = 'Hech narsa eshitilmadi, qayta urinib ko‘ring.';
+  }
+}
+
+if(isNativeApp){
+  const NativeSR = window.Capacitor.Plugins.SpeechRecognition;
+
+  async function startNative(){
+    try{
+      const perm = await NativeSR.requestPermissions();
+      if(perm.speechRecognition !== 'granted'){
+        document.getElementById('micStatus').textContent = 'Mikrofonga ruxsat berilmadi.';
+        return;
+      }
+      const avail = await NativeSR.available();
+      if(!avail.available){
+        document.getElementById('micStatus').textContent = 'Bu qurilmada ovozni tanish mavjud emas.';
+        return;
+      }
+      document.getElementById('transcriptBox').textContent = '';
+      voiceItems = []; renderVoiceItems();
+      listening = true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micStatus').textContent = 'Tinglayapman... aytib bo‘lgach yana bosing';
+
+      await NativeSR.addListener('partialResults', (data)=>{
+        if(data.matches && data.matches.length){
+          document.getElementById('transcriptBox').textContent = data.matches[0];
+        }
+      });
+      await NativeSR.start({ language: micLang, partialResults: true, popup: false, maxResults: 1 });
+    }catch(e){
+      document.getElementById('micStatus').textContent = 'Xatolik: ovozni tanib bo‘lmadi.';
+      listening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+    }
+  }
+  async function stopNative(){
+    try{ await NativeSR.stop(); await NativeSR.removeAllListeners(); }catch(e){}
+    const text = document.getElementById('transcriptBox').textContent.trim();
+    finishListening(text);
+  }
+  document.getElementById('micBtn').addEventListener('click', ()=>{
+    if(listening){ stopNative(); } else { startNative(); }
+  });
+
+} else {
+  const WebSR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  if(WebSR){
+    recognition = new WebSR();
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = ()=>{
+      listening = true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micStatus').textContent = 'Tinglayapman... aytib bo‘lgach kuting';
+    };
+    recognition.onresult = (event)=>{
+      let text = '';
+      for(let i=0;i<event.results.length;i++){ text += event.results[i][0].transcript; }
+      document.getElementById('transcriptBox').textContent = text;
+    };
+    recognition.onerror = (event)=>{
+      listening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micStatus').textContent = event.error==='not-allowed'
+        ? 'Mikrofonga ruxsat berilmadi.'
+        : 'Til qo‘llab-quvvatlanmasa, Sozlamalardan boshqa tilni tanlang.';
+    };
+    recognition.onend = ()=>{
+      const text = document.getElementById('transcriptBox').textContent.trim();
+      finishListening(text);
+    };
+    document.getElementById('micBtn').addEventListener('click', ()=>{
+      if(listening){ recognition.stop(); }
+      else{
+        document.getElementById('transcriptBox').textContent = '';
+        voiceItems = []; renderVoiceItems();
+        recognition.lang = micLang;
+        try{ recognition.start(); }catch(e){}
+      }
+    });
+  } else {
+    document.getElementById('micStatus').textContent = 'Bu qurilmada ovozli kiritish mavjud emas. Qo‘lda qo‘shish uchun "+ Yana band qo‘shish"ni bosing.';
+    document.getElementById('addVoiceItemBtn').style.display = 'block';
+  }
+}
+
+/* ============================================================ SERVICE WORKER */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
+/* ============================================================ INIT */
+loadAll();
+renderAll();
+</script>
+</body>
+</html>

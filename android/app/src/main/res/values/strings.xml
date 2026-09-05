@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Hisobchi</string>
+    <string name="title_activity_main">Hisobchi</string>
+    <string name="package_name">uz.hisobchi.app</string>
+    <string name="custom_url_scheme">uz.hisobchi.app</string>
+</resources>
