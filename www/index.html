@@ -331,21 +331,31 @@ const DB = {
   }
 };
 
+// True when running inside the Capacitor native Android wrapper (the APK),
+// false in a plain browser / PWA context. Several features (voice input,
+// backup sharing) branch on this.
+const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
 /* ============================================================ DATA */
 const DEFAULT_CATEGORIES = [
-  {key:'rozgor', name:"Ro‘zg‘or", icon:'🧺', color:'#1E9E64', bg:'#E6F7EE'},
-  {key:'yolkira', name:"Yo‘l-kira", icon:'🚗', color:'#2563EB', bg:'#E8F0FE'},
-  {key:'kochadagi', name:"Ko‘chadagi xarajat", icon:'☕', color:'#F97316', bg:'#FFF1E6'},
-  {key:'kiyim', name:"Kiyim-kechak", icon:'👕', color:'#9333EA', bg:'#F3E8FF'},
-  {key:'sogliq', name:"Sog‘liq", icon:'❤️', color:'#DC2626', bg:'#FDE8E8'},
-  {key:'oila', name:"Oila va bolalar", icon:'👨‍👩‍👧', color:'#0D9488', bg:'#E6FBF8'},
-  {key:'uyjoy', name:"Uy-joy", icon:'🏠', color:'#16A34A', bg:'#E6F7EE'},
-  {key:'aloqa', name:"Aloqa va internet", icon:'📶', color:'#2563EB', bg:'#E8F0FE'},
-  {key:'ish', name:"Ish / biznes", icon:'💼', color:'#92400E', bg:'#F5EDE3'},
-  {key:'sovga', name:"Sovg‘a", icon:'🎁', color:'#DB2777', bg:'#FCE7F3'},
-  {key:'kongilochar', name:"Ko‘ngilochar", icon:'🎮', color:'#7C3AED', bg:'#F3E8FF'},
-  {key:'kutilmagan', name:"Kutilmagan xarajat", icon:'⚠️', color:'#DC2626', bg:'#FEE2E2'},
-  {key:'boshqa', name:"Boshqa", icon:'⋯', color:'#64748B', bg:'#F1F5F9'}
+  {key:'rozgor', name:"Ro‘zg‘or", icon:'🧺', color:'#1E9E64', bg:'#E6F7EE', type:'expense'},
+  {key:'yolkira', name:"Yo‘l-kira", icon:'🚗', color:'#2563EB', bg:'#E8F0FE', type:'expense'},
+  {key:'kochadagi', name:"Ko‘chadagi xarajat", icon:'☕', color:'#F97316', bg:'#FFF1E6', type:'expense'},
+  {key:'kiyim', name:"Kiyim-kechak", icon:'👕', color:'#9333EA', bg:'#F3E8FF', type:'expense'},
+  {key:'sogliq', name:"Sog‘liq", icon:'❤️', color:'#DC2626', bg:'#FDE8E8', type:'expense'},
+  {key:'oila', name:"Oila va bolalar", icon:'👨‍👩‍👧', color:'#0D9488', bg:'#E6FBF8', type:'expense'},
+  {key:'uyjoy', name:"Uy-joy", icon:'🏠', color:'#16A34A', bg:'#E6F7EE', type:'expense'},
+  {key:'aloqa', name:"Aloqa va internet", icon:'📶', color:'#2563EB', bg:'#E8F0FE', type:'expense'},
+  {key:'ish', name:"Ish / biznes", icon:'💼', color:'#92400E', bg:'#F5EDE3', type:'expense'},
+  {key:'sovga', name:"Sovg‘a", icon:'🎁', color:'#DB2777', bg:'#FCE7F3', type:'expense'},
+  {key:'kongilochar', name:"Ko‘ngilochar", icon:'🎮', color:'#7C3AED', bg:'#F3E8FF', type:'expense'},
+  {key:'kutilmagan', name:"Kutilmagan xarajat", icon:'⚠️', color:'#DC2626', bg:'#FEE2E2', type:'expense'},
+  {key:'boshqa', name:"Boshqa", icon:'⋯', color:'#64748B', bg:'#F1F5F9', type:'expense'},
+  {key:'maosh', name:"Maosh / ish haqi", icon:'💵', color:'#16A34A', bg:'#E6F7EE', type:'income'},
+  {key:'qarz_kirim', name:"Qarz qaytishi", icon:'🤝', color:'#0EA5E9', bg:'#E0F2FE', type:'income'},
+  {key:'savdo', name:"Savdo / biznes daromadi", icon:'📈', color:'#7C3AED', bg:'#F3E8FF', type:'income'},
+  {key:'sovga_kirim', name:"Sovg‘a / hadya", icon:'🎁', color:'#DB2777', bg:'#FCE7F3', type:'income'},
+  {key:'boshqa_kirim', name:"Boshqa daromad", icon:'⋯', color:'#64748B', bg:'#F1F5F9', type:'income'}
 ];
 const SWATCHES = ['#1E9E64','#2563EB','#F97316','#9333EA','#DC2626','#0D9488','#16A34A','#92400E','#DB2777','#7C3AED','#64748B','#0EA5E9'];
 const MONTH_NAMES = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
@@ -359,6 +369,7 @@ let homeShowingDayList = false;
 let reportMonth = new Date().getMonth();
 let reportYear = new Date().getFullYear();
 let reportSubtab = 'categories';
+let reportType = 'expense';
 let showingAnalytics = false;
 let analyticsTab = 'umumiy';
 let editingExpenseId = null;
@@ -372,13 +383,16 @@ function pad(n){ return n<10 ? '0'+n : ''+n; }
 function fmt(n){ return Math.round(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
 function uid(){ return 'x_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
 function catByKey(key){ return categories.find(c=>c.key===key) || categories.find(c=>c.key==='boshqa'); }
+function catsOfType(type){ return categories.filter(c=>c.type===type); }
 function dayTitle(iso){
   const d = new Date(iso+'T00:00:00');
   return d.getDate()+' '+MONTH_NAMES[d.getMonth()]+', '+WEEKDAYS[d.getDay()];
 }
 function loadAll(){
   try{ expenses = JSON.parse(DB.get('expenses') || '[]'); }catch(e){ expenses = []; }
+  expenses.forEach(e=>{ if(!e.type) e.type='expense'; });
   try{ categories = JSON.parse(DB.get('categories') || JSON.stringify(DEFAULT_CATEGORIES)); }catch(e){ categories = [...DEFAULT_CATEGORIES]; }
+  categories.forEach(c=>{ if(!c.type) c.type='expense'; });
   micLang = DB.get('micLang') || 'uz-UZ';
 }
 function persistExpenses(){ DB.set('expenses', JSON.stringify(expenses)); }
@@ -387,6 +401,9 @@ function persistCategories(){ DB.set('categories', JSON.stringify(categories)); 
 function expensesForDate(iso){ return expenses.filter(e=>e.dateISO===iso); }
 function expensesForMonth(y,m){ return expenses.filter(e=>{ const d=new Date(e.dateISO+'T00:00:00'); return d.getFullYear()===y && d.getMonth()===m; }); }
 function sumOf(list){ return list.reduce((s,e)=>s+e.amount,0); }
+function onlyExpense(list){ return list.filter(e=>e.type!=='income'); }
+function onlyIncome(list){ return list.filter(e=>e.type==='income'); }
+function balanceOf(list){ return sumOf(onlyIncome(list)) - sumOf(onlyExpense(list)); }
 
 function categoryBreakdown(list){
   const map = {};
@@ -411,14 +428,33 @@ const KEYWORD_MAP = {
   kongilochar: ['kino','konsert','o‘yin','oyin','park','bilyar'],
   kutilmagan: ['jarima','shtraf','favqulodda']
 };
-function guessCategory(text){
+const INCOME_KEYWORD_MAP = {
+  maosh: ['maosh','ish haqi','oylik','ish haqim'],
+  qarz_kirim: ['qarz qaytardi','qarzini berdi','qarzin berdi','qarz berdi','qarzimni qaytardi','qarzim qaytdi'],
+  savdo: ['savdo','biznes daromad','sotdim','sotildi','buyurtma'],
+  sovga_kirim: ['sovg‘a berdi','sovga berdi','hadya']
+};
+const INCOME_SIGNAL_WORDS = ['maosh','oylik','qarz qaytar','qarz berdi','daromad','kirim','pul tushdi','sotdim','sotildi','hadya','sovg‘a berdi','sovga berdi','ish haqi'];
+function guessCategory(text, type){
   const t = text.toLowerCase();
+  if(type==='income'){
+    if(/qarz\S*\s*(qaytar\S*|berdi)/.test(t)) return 'qarz_kirim';
+    for(const [key, words] of Object.entries(INCOME_KEYWORD_MAP)){
+      if(words.some(w => t.includes(w))) return key;
+    }
+    return 'boshqa_kirim';
+  }
   for(const [key, words] of Object.entries(KEYWORD_MAP)){
     if(words.some(w => t.includes(w))) return key;
   }
   return 'boshqa';
 }
-function parseSegment(raw){
+function guessType(text){
+  const t = text.toLowerCase();
+  if(/qarz\S*\s*(qaytar\S*|berdi)/.test(t)) return 'income';
+  return INCOME_SIGNAL_WORDS.some(w=>t.includes(w)) ? 'income' : 'expense';
+}
+function parseSegment(raw, forcedType){
   let t = raw.trim();
   let amount = null;
   const mlnMatch = t.match(/(\d+([.,]\d+)?)\s*(mln|million)/i);
@@ -434,15 +470,16 @@ function parseSegment(raw){
     .replace(/\d+([.,]\d+)?\s*(mln|million)/gi,'')
     .replace(/\d+([.,]\d+)?\s*ming/gi,'')
     .replace(/\d[\d\s]*\d|\d/g,'')
-    .replace(/\b(sarfladim|oldim|to‘ladim|toladim|xarid qildim|sotib oldim|so‘m|som|ga|uchun)\b/gi,'')
+    .replace(/\b(sarfladim|oldim|to‘ladim|toladim|xarid qildim|sotib oldim|so‘m|som|ga|uchun|berdi)\b/gi,'')
     .replace(/\s{2,}/g,' ')
     .trim();
   note = note.charAt(0).toUpperCase() + note.slice(1);
-  const category = guessCategory(t);
-  return { amount: amount||0, note: note || 'Xarajat', categoryKey: category };
+  const type = forcedType || 'expense';
+  const category = guessCategory(t, type);
+  return { amount: amount||0, note: note || (type==='income'?'Kirim':'Xarajat'), categoryKey: category, type };
 }
-function parseTranscriptMulti(text){
-  return text.split(',').map(s=>s.trim()).filter(Boolean).map(parseSegment).filter(it=>it.amount>0);
+function parseTranscriptMulti(text, forcedType){
+  return text.split(',').map(s=>s.trim()).filter(Boolean).map(s=>parseSegment(s, forcedType)).filter(it=>it.amount>0);
 }
 
 /* ============================================================ RENDER: HOME */
@@ -453,8 +490,12 @@ function renderHome(){
 }
 function renderHomeSummary(){
   const list = expensesForDate(selectedDate);
-  const total = sumOf(list);
-  const breakdown = categoryBreakdown(list).slice(0,4);
+  const expList = onlyExpense(list);
+  const incList = onlyIncome(list);
+  const expTotal = sumOf(expList);
+  const incTotal = sumOf(incList);
+  const balance = incTotal - expTotal;
+  const breakdown = categoryBreakdown(expList).slice(0,4);
   const isToday = selectedDate === todayISO();
   const d = new Date(selectedDate+'T00:00:00');
   const label = (isToday ? 'BUGUN — ' : '') + d.getDate()+' '+MONTH_NAMES[d.getMonth()].toUpperCase()+', '+d.getFullYear();
@@ -469,15 +510,30 @@ function renderHomeSummary(){
       </div>
     </div>
     <div class="card">
-      <p class="card-title">${isToday ? 'Bugungi jami xarajat' : 'Shu kunlik jami xarajat'}</p>
-      <p class="big-amount">${fmt(total)} so‘m</p>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;">
+          <p class="card-title" style="margin-bottom:2px;">Kirim</p>
+          <p style="font-size:19px;font-weight:700;color:#16A34A;margin:0;">+${fmt(incTotal)}</p>
+        </div>
+        <div style="flex:1;">
+          <p class="card-title" style="margin-bottom:2px;">Chiqim</p>
+          <p style="font-size:19px;font-weight:700;color:#c94b3f;margin:0;">−${fmt(expTotal)}</p>
+        </div>
+        <div style="flex:1;">
+          <p class="card-title" style="margin-bottom:2px;">Balans</p>
+          <p style="font-size:19px;font-weight:700;color:${balance>=0?'#16A34A':'#c94b3f'};margin:0;">${balance>=0?'+':''}${fmt(balance)}</p>
+        </div>
+      </div>
       <div class="mic-hero">
         <button class="mic-circle" data-action="open-voice">🎤</button>
         <div class="mic-hint">Ovoz orqali xarajat qo‘shish<br>(bosing va gapiring)</div>
       </div>
+      <div style="text-align:center;margin-top:2px;">
+        <button class="quick-chip" data-action="open-voice-income" style="display:inline-block;width:auto;">💰 Kirim qo‘shish (maosh, qarz qaytishi va h.k.)</button>
+      </div>
     </div>
     <div class="card">
-      <p class="card-title">Bo‘limlar bo‘yicha</p>
+      <p class="card-title">Xarajat bo‘limlari</p>
       ${ breakdown.length ? breakdown.map(b=>`
         <div class="cat-row">
           <div class="cat-icon" style="background:${b.cat.bg};">${b.cat.icon}</div>
@@ -485,14 +541,14 @@ function renderHomeSummary(){
           <div class="cat-amt">${fmt(b.amount)}</div>
         </div>
       `).join('') : '<div class="empty">Hali xarajat yo‘q</div>' }
-      ${ list.length ? '<div class="link-row" data-action="open-daylist">BARCHA XARAJATLAR ›</div>' : '' }
+      ${ list.length ? '<div class="link-row" data-action="open-daylist">BARCHA YOZUVLAR ›</div>' : '' }
     </div>
   `;
-  const dateInput = document.getElementById('__dp');
 }
 function renderHomeDayList(){
   const list = expensesForDate(selectedDate).sort((a,b)=> b.time.localeCompare(a.time));
-  const total = sumOf(list);
+  const expTotal = sumOf(onlyExpense(list));
+  const incTotal = sumOf(onlyIncome(list));
   document.getElementById('home-daylist-view').innerHTML = `
     <div class="back-header">
       <button class="icon-btn" data-action="back-home">←</button>
@@ -500,10 +556,12 @@ function renderHomeDayList(){
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-soft);margin-bottom:6px;">
-        <span>Jami</span><span>${fmt(total)} so‘m</span>
+        <span>Kirim: <strong style="color:#16A34A;">+${fmt(incTotal)}</strong></span>
+        <span>Chiqim: <strong style="color:#c94b3f;">−${fmt(expTotal)}</strong></span>
       </div>
       ${ list.length ? list.map(e=>{
         const cat = catByKey(e.categoryKey);
+        const isIncome = e.type==='income';
         return `<div class="entry-row" data-action="edit-expense" data-id="${e.id}">
           <div class="entry-time">${e.time}</div>
           <div class="cat-icon" style="background:${cat.bg};width:34px;height:34px;font-size:15px;">${cat.icon}</div>
@@ -511,9 +569,9 @@ function renderHomeDayList(){
             <div class="entry-note">${e.note}</div>
             <div class="entry-cat-name">${cat.name}</div>
           </div>
-          <div class="entry-amt">${fmt(e.amount)}</div>
+          <div class="entry-amt" style="color:${isIncome?'#16A34A':'inherit'};">${isIncome?'+':'−'}${fmt(e.amount)}</div>
         </div>`;
-      }).join('') : '<div class="empty">Bu kunda xarajat yo‘q</div>' }
+      }).join('') : '<div class="empty">Bu kunda yozuv yo‘q</div>' }
     </div>
   `;
 }
@@ -525,8 +583,11 @@ function renderReport(){
   if(showingAnalytics) renderAnalytics(); else renderReportMain();
 }
 function renderReportMain(){
-  const list = expensesForMonth(reportYear, reportMonth);
-  const total = sumOf(list);
+  const monthList = expensesForMonth(reportYear, reportMonth);
+  const expTotal = sumOf(onlyExpense(monthList));
+  const incTotal = sumOf(onlyIncome(monthList));
+  const balance = incTotal - expTotal;
+  const list = reportType==='income' ? onlyIncome(monthList) : onlyExpense(monthList);
   const breakdown = categoryBreakdown(list);
 
   let bodyHtml = '';
@@ -538,7 +599,7 @@ function renderReportMain(){
         <div class="cat-amt">${fmt(b.amount)}</div>
         <div class="cat-pct">${b.pct}%</div>
       </div>
-    `).join('') : '<div class="empty">Bu oyda xarajat yo‘q</div>';
+    `).join('') : '<div class="empty">Bu oyda ma’lumot yo‘q</div>';
   } else {
     const byDay = {};
     list.forEach(e=>{ byDay[e.dateISO] = (byDay[e.dateISO]||0) + e.amount; });
@@ -548,7 +609,7 @@ function renderReportMain(){
         <div class="cat-name">${dayTitle(iso)}</div>
         <div class="cat-amt">${fmt(byDay[iso])}</div>
       </div>
-    `).join('') : '<div class="empty">Bu oyda xarajat yo‘q</div>';
+    `).join('') : '<div class="empty">Bu oyda ma’lumot yo‘q</div>';
   }
 
   document.getElementById('report-main-view').innerHTML = `
@@ -559,10 +620,26 @@ function renderReportMain(){
         <div class="m-label">${MONTH_NAMES[reportMonth]}, ${reportYear}</div>
         <button data-action="report-month-next">›</button>
       </div>
-      <p class="card-title" style="margin-top:10px;">Oy jami xarajat</p>
-      <p class="big-amount">${fmt(total)} so‘m</p>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <div style="flex:1;">
+          <p class="card-title" style="margin-bottom:2px;">Kirim</p>
+          <p style="font-size:17px;font-weight:700;color:#16A34A;margin:0;">+${fmt(incTotal)}</p>
+        </div>
+        <div style="flex:1;">
+          <p class="card-title" style="margin-bottom:2px;">Chiqim</p>
+          <p style="font-size:17px;font-weight:700;color:#c94b3f;margin:0;">−${fmt(expTotal)}</p>
+        </div>
+        <div style="flex:1;">
+          <p class="card-title" style="margin-bottom:2px;">Balans</p>
+          <p style="font-size:17px;font-weight:700;color:${balance>=0?'#16A34A':'#c94b3f'};margin:0;">${balance>=0?'+':''}${fmt(balance)}</p>
+        </div>
+      </div>
     </div>
     <div class="card">
+      <div class="pill-tabs">
+        <button class="${reportType==='expense'?'active':''}" data-action="report-type" data-type="expense">Chiqimlar</button>
+        <button class="${reportType==='income'?'active':''}" data-action="report-type" data-type="income">Kirimlar</button>
+      </div>
       <div class="pill-tabs">
         <button class="${reportSubtab==='categories'?'active':''}" data-action="report-subtab" data-sub="categories">Bo‘limlar bo‘yicha</button>
         <button class="${reportSubtab==='days'?'active':''}" data-action="report-subtab" data-sub="days">Kunlar bo‘yicha</button>
@@ -573,12 +650,13 @@ function renderReportMain(){
   `;
 }
 function renderAnalytics(){
-  const list = expensesForMonth(reportYear, reportMonth);
+  const list = reportType==='income' ? onlyIncome(expensesForMonth(reportYear, reportMonth)) : onlyExpense(expensesForMonth(reportYear, reportMonth));
   const total = sumOf(list);
   const breakdown = categoryBreakdown(list);
   const prevM = reportMonth===0?11:reportMonth-1;
   const prevY = reportMonth===0?reportYear-1:reportYear;
-  const prevTotal = sumOf(expensesForMonth(prevY, prevM));
+  const prevMonthList = reportType==='income' ? onlyIncome(expensesForMonth(prevY, prevM)) : onlyExpense(expensesForMonth(prevY, prevM));
+  const prevTotal = sumOf(prevMonthList);
   const diffPct = prevTotal ? Math.round(((total-prevTotal)/prevTotal)*100) : 0;
 
   const byDayMap = {};
@@ -619,7 +697,7 @@ function renderAnalytics(){
       </div>
     `;
   } else if(analyticsTab === 'taqqoslash'){
-    const prevBreakdown = categoryBreakdown(expensesForMonth(prevY, prevM));
+    const prevBreakdown = categoryBreakdown(prevMonthList);
     const prevMap = {}; prevBreakdown.forEach(b=>prevMap[b.cat.key]=b.amount);
     tabBody = breakdown.map(b=>{
       const prevAmt = prevMap[b.cat.key]||0;
@@ -719,28 +797,34 @@ function drawTrend(canvasId, dailyTotals){
 
 /* ============================================================ RENDER: CATEGORIES */
 function renderCategories(){
+  const expCats = catsOfType('expense');
+  const incCats = catsOfType('income');
+  const catCard = c => `
+    <div class="cat-card" data-action="edit-category" data-key="${c.key}">
+      <div class="cat-icon" style="background:${c.bg};">${c.icon}</div>
+      <div class="name">${c.name}</div>
+      <span class="menu-dot">⋯</span>
+    </div>`;
   document.getElementById('tab-categories').innerHTML = `
     <div class="back-header">
       <button class="icon-btn" data-action="switch-tab" data-tab="home">←</button>
       <h2>Bo‘limlar</h2>
     </div>
-    <div class="cat-grid">
-      ${categories.map(c=>`
-        <div class="cat-card" data-action="edit-category" data-key="${c.key}">
-          <div class="cat-icon" style="background:${c.bg};">${c.icon}</div>
-          <div class="name">${c.name}</div>
-          <span class="menu-dot">⋯</span>
-        </div>
-      `).join('')}
+    <p class="card-title">Xarajat bo‘limlari</p>
+    <div class="cat-grid">${expCats.map(catCard).join('')}</div>
+    <div style="margin-top:12px;margin-bottom:20px;">
+      <button class="btn btn-ghost" data-action="open-add-category" data-type="expense">+ Xarajat bo‘limi qo‘shish</button>
     </div>
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" data-action="open-add-category">+ Yangi bo‘lim qo‘shish</button>
+    <p class="card-title">Kirim manbalari</p>
+    <div class="cat-grid">${incCats.map(catCard).join('')}</div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-ghost" data-action="open-add-category" data-type="income">+ Kirim manbai qo‘shish</button>
     </div>
   `;
 }
 
 /* ============================================================ RENDER: SEARCH */
-let searchState = { q:'', range:'oy', catKey:'all', min:'', max:'', results:null };
+let searchState = { q:'', range:'oy', type:'all', catKey:'all', min:'', max:'', results:null };
 function renderSearch(){
   const quick = [
     {label:"Eng ko‘p xarajat qilingan kun qaysi?", action:()=>quickTopDay()},
@@ -752,6 +836,10 @@ function renderSearch(){
     <div class="search-box">
       <span>🔎</span>
       <input type="text" id="searchQ" placeholder="Izoh bo‘yicha qidirish..." value="${searchState.q}">
+    </div>
+    <p class="card-title">Turi</p>
+    <div class="chip-group">
+      ${['all','expense','income'].map(ty=>`<button class="chip-btn ${searchState.type===ty?'active':''}" data-action="search-type" data-type="${ty}">${ {all:'Barchasi',expense:'Chiqim',income:'Kirim'}[ty] }</button>`).join('')}
     </div>
     <p class="card-title">Davr</p>
     <div class="chip-group">
@@ -787,11 +875,12 @@ function renderSearchResults(){
       <p class="card-title">Natija (${list.length} ta) — jami ${fmt(total)} so‘m</p>
       ${ list.length ? list.sort((a,b)=>new Date(b.dateISO)-new Date(a.dateISO)).map(e=>{
         const cat = catByKey(e.categoryKey);
+        const isIncome = e.type==='income';
         return `<div class="entry-row" data-action="edit-expense" data-id="${e.id}">
           <div class="entry-time">${e.time}</div>
           <div class="cat-icon" style="background:${cat.bg};width:34px;height:34px;font-size:15px;">${cat.icon}</div>
           <div class="entry-main"><div class="entry-note">${e.note}</div><div class="entry-cat-name">${dayTitle(e.dateISO)} · ${cat.name}</div></div>
-          <div class="entry-amt">${fmt(e.amount)}</div>
+          <div class="entry-amt" style="color:${isIncome?'#16A34A':'inherit'};">${isIncome?'+':'−'}${fmt(e.amount)}</div>
         </div>`;
       }).join('') : '<div class="empty">Hech narsa topilmadi</div>' }
     </div>
@@ -812,6 +901,7 @@ function runSearch(){
   } else if(searchState.range === 'oy'){
     list = expensesForMonth(now.getFullYear(), now.getMonth());
   }
+  if(searchState.type !== 'all'){ list = list.filter(e=>(e.type||'expense')===searchState.type); }
   if(searchState.catKey !== 'all'){ list = list.filter(e=>e.categoryKey===searchState.catKey); }
   if(searchState.q){ list = list.filter(e=>e.note.toLowerCase().includes(searchState.q)); }
   if(searchState.min){ list = list.filter(e=>e.amount >= parseFloat(searchState.min)); }
@@ -863,7 +953,8 @@ function renderSettings(){
     </div>
     <div class="card" style="box-shadow:none;border:1px solid var(--border);">
       <p class="card-title" style="margin-bottom:4px;">Hisobchi</p>
-      <p style="font-size:12px;color:var(--text-soft);margin:0;">Shaxsiy xarajat hisoboti — ovozli kiritish, kunlik/oylik hisobot va bo‘limlar bo‘yicha tahlil.</p>
+      <p style="font-size:12px;color:var(--text-soft);margin:0 0 6px;">Shaxsiy xarajat hisoboti — ovozli kiritish, kunlik/oylik hisobot va bo‘limlar bo‘yicha tahlil.</p>
+      <p style="font-size:12px;color:var(--text-soft);margin:0;">Muallif: <strong style="color:var(--text);">Farrux Sadriddinov</strong></p>
     </div>
   `;
   document.getElementById('micLangSelect').addEventListener('change', (e)=>{
@@ -872,61 +963,91 @@ function renderSettings(){
 }
 
 /* ============================================================ VOICE MODAL */
-function openVoiceOverlay(){
+let voiceSessionType = 'expense';
+function openVoiceOverlay(forcedType){
+  voiceSessionType = forcedType || 'expense';
   voiceItems = [];
   document.getElementById('transcriptBox').textContent = '';
-  document.getElementById('micStatus').textContent = 'Bosing va nima uchun qancha sarflaganingizni ayting';
+  document.querySelector('#voiceOverlay .sheet-head h3').textContent = voiceSessionType==='income' ? '💰 Kirim qo‘shish' : 'Ovoz orqali xarajat qo‘shish';
+  document.getElementById('micStatus').textContent = voiceSessionType==='income'
+    ? 'Bosing va qayerdan qancha kirim tushganini ayting'
+    : 'Bosing va nima uchun qancha sarflaganingizni ayting';
   renderVoiceItems();
   showOverlay('voiceOverlay');
 }
 function renderVoiceItems(){
   const wrap = document.getElementById('voiceItemsWrap');
-  wrap.innerHTML = voiceItems.map((it,i)=>`
+  wrap.innerHTML = voiceItems.map((it,i)=>{
+    if(!it.type) it.type = 'expense';
+    return `
     <div class="voice-item">
       <button class="rm" data-action="remove-voice-item" data-idx="${i}">✕</button>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button type="button" class="chip-btn ${it.type==='expense'?'active':''}" data-action="voice-type" data-idx="${i}" data-type="expense" style="flex:1;text-align:center;">Chiqim</button>
+        <button type="button" class="chip-btn ${it.type==='income'?'active':''}" data-action="voice-type" data-idx="${i}" data-type="income" style="flex:1;text-align:center;">Kirim</button>
+      </div>
       <div class="row1">
         <input type="number" placeholder="Summa" value="${it.amount||''}" data-action="voice-amount" data-idx="${i}">
         <input type="text" placeholder="Izoh" value="${it.note||''}" data-action="voice-note" data-idx="${i}">
       </div>
       <select data-action="voice-cat" data-idx="${i}">
-        ${categories.map(c=>`<option value="${c.key}" ${it.categoryKey===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
+        ${catsOfType(it.type).map(c=>`<option value="${c.key}" ${it.categoryKey===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
       </select>
     </div>
-  `).join('');
+  `;
+  }).join('');
   document.getElementById('addVoiceItemBtn').style.display = 'block';
   document.getElementById('saveVoiceBtn').style.display = voiceItems.length ? 'block' : 'none';
 }
 
 /* ============================================================ EDIT EXPENSE MODAL */
+let editingType = 'expense';
 function openEditExpense(id){
   editingExpenseId = id;
   const e = expenses.find(x=>x.id===id);
   if(!e) return;
+  editingType = e.type || 'expense';
   document.getElementById('editFormWrap').innerHTML = `
+    <div class="pill-tabs" id="editTypeTabs" style="margin-bottom:12px;">
+      <button type="button" class="${editingType==='expense'?'active':''}" data-action="pick-edit-type" data-type="expense">Chiqim</button>
+      <button type="button" class="${editingType==='income'?'active':''}" data-action="pick-edit-type" data-type="income">Kirim</button>
+    </div>
     <div class="two-col">
       <div class="field"><label>Sana</label><input type="date" id="ef_date" value="${e.dateISO}"></div>
       <div class="field"><label>Vaqt</label><input type="time" id="ef_time" value="${e.time}"></div>
     </div>
     <div class="field"><label>Nomi / izoh</label><input type="text" id="ef_note" value="${e.note}"></div>
     <div class="field"><label>Bo‘lim</label>
-      <select id="ef_cat">${categories.map(c=>`<option value="${c.key}" ${e.categoryKey===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}</select>
+      <select id="ef_cat">${catsOfType(editingType).map(c=>`<option value="${c.key}" ${e.categoryKey===c.key?'selected':''}>${c.icon} ${c.name}</option>`).join('')}</select>
     </div>
     <div class="field"><label>Summa (so‘m)</label><input type="number" id="ef_amount" value="${e.amount}"></div>
   `;
   showOverlay('editOverlay');
 }
+function refreshEditCategorySelect(){
+  const sel = document.getElementById('ef_cat');
+  if(!sel) return;
+  sel.innerHTML = catsOfType(editingType).map(c=>`<option value="${c.key}">${c.icon} ${c.name}</option>`).join('');
+}
 
 /* ============================================================ CATEGORY MODAL */
 let categorySwatchColor = SWATCHES[0];
-function openCategoryModal(key){
+let categoryModalType = 'expense';
+function openCategoryModal(key, forcedType){
   editingCategoryKey = key || null;
-  const cat = key ? catByKey(key) : {name:'',icon:'🏷️',color:SWATCHES[0]};
+  const cat = key ? catByKey(key) : {name:'',icon:'🏷️',color:SWATCHES[0],type: forcedType||'expense'};
   categorySwatchColor = cat.color;
+  categoryModalType = cat.type || 'expense';
   document.getElementById('categoryModalTitle').textContent = key ? 'Bo‘limni tahrirlash' : 'Yangi bo‘lim';
   document.getElementById('categoryFormWrap').innerHTML = `
     <div class="two-col">
       <div class="field" style="flex:0 0 80px;"><label>Belgi</label><input type="text" id="cf_icon" value="${cat.icon}" maxlength="4"></div>
       <div class="field"><label>Nomi</label><input type="text" id="cf_name" value="${cat.name}"></div>
+    </div>
+    <p class="card-title">Turi</p>
+    <div class="pill-tabs" id="catTypeTabs" style="margin-bottom:14px;">
+      <button type="button" class="${categoryModalType==='expense'?'active':''}" data-action="pick-cat-type" data-type="expense">Xarajat</button>
+      <button type="button" class="${categoryModalType==='income'?'active':''}" data-action="pick-cat-type" data-type="income">Kirim</button>
     </div>
     <p class="card-title">Rang</p>
     <div class="swatch-row" id="swatchRow">
@@ -934,7 +1055,7 @@ function openCategoryModal(key){
     </div>
   `;
   const delWrap = document.getElementById('categoryDeleteWrap');
-  delWrap.innerHTML = (key && key!=='boshqa') ? `<button class="btn btn-danger" data-action="delete-category">Bo‘limni o‘chirish</button>` : '';
+  delWrap.innerHTML = (key && key!=='boshqa' && key!=='boshqa_kirim') ? `<button class="btn btn-danger" data-action="delete-category">Bo‘limni o‘chirish</button>` : '';
   showOverlay('categoryOverlay');
 }
 
@@ -972,6 +1093,7 @@ document.addEventListener('click', (e)=>{
   else if(a==='open-analytics'){ showingAnalytics = true; renderReport(); }
   else if(a==='back-report'){ showingAnalytics = false; renderReport(); }
   else if(a==='report-subtab'){ reportSubtab = t.dataset.sub; renderReportMain(); }
+  else if(a==='report-type'){ reportType = t.dataset.type; renderReportMain(); }
   else if(a==='analytics-tab'){ analyticsTab = t.dataset.sub; renderAnalytics(); }
   else if(a==='report-month-prev'){ reportMonth--; if(reportMonth<0){reportMonth=11;reportYear--;} renderReportMain(); }
   else if(a==='report-month-next'){ reportMonth++; if(reportMonth>11){reportMonth=0;reportYear++;} renderReportMain(); }
@@ -980,11 +1102,22 @@ document.addEventListener('click', (e)=>{
   else if(a==='save-edit-expense'){ saveEditExpense(); }
   else if(a==='delete-edit-expense'){ deleteEditExpense(); }
   else if(a==='close-overlay'){ hideOverlay(t.dataset.overlay); }
-  else if(a==='open-voice'){ openVoiceOverlay(); }
-  else if(a==='add-voice-item'){ voiceItems.push({amount:0, note:'', categoryKey:'boshqa'}); renderVoiceItems(); }
+  else if(a==='open-voice'){ openVoiceOverlay('expense'); }
+  else if(a==='open-voice-income'){ openVoiceOverlay('income'); }
+  else if(a==='add-voice-item'){ voiceItems.push({amount:0, note:'', categoryKey: voiceSessionType==='income'?'boshqa_kirim':'boshqa', type: voiceSessionType}); renderVoiceItems(); }
+  else if(a==='voice-type'){ voiceItems[+t.dataset.idx].type = t.dataset.type; voiceItems[+t.dataset.idx].categoryKey = catsOfType(t.dataset.type)[0].key; renderVoiceItems(); }
   else if(a==='remove-voice-item'){ voiceItems.splice(+t.dataset.idx,1); renderVoiceItems(); }
   else if(a==='save-voice-items'){ saveVoiceItems(); }
-  else if(a==='open-add-category'){ openCategoryModal(null); }
+  else if(a==='open-add-category'){ openCategoryModal(null, t.dataset.type); }
+  else if(a==='pick-cat-type'){
+    categoryModalType = t.dataset.type;
+    document.querySelectorAll('#catTypeTabs button').forEach(b=>b.classList.toggle('active', b.dataset.type===categoryModalType));
+  }
+  else if(a==='pick-edit-type'){
+    editingType = t.dataset.type;
+    document.querySelectorAll('#editTypeTabs button').forEach(b=>b.classList.toggle('active', b.dataset.type===editingType));
+    refreshEditCategorySelect();
+  }
   else if(a==='edit-category'){ openCategoryModal(t.dataset.key); }
   else if(a==='pick-swatch'){
     categorySwatchColor = t.dataset.color;
@@ -995,6 +1128,7 @@ document.addEventListener('click', (e)=>{
   else if(a==='delete-category'){ deleteCategory(); }
   else if(a==='run-search'){ runSearch(); }
   else if(a==='search-range'){ searchState.range = t.dataset.range; renderSearch(); }
+  else if(a==='search-type'){ searchState.type = t.dataset.type; renderSearch(); }
   else if(a==='quick-search'){ window.__quickActions[+t.dataset.idx].action(); }
   else if(a==='export-backup'){ exportBackup(); }
   else if(a==='import-backup-trigger'){ document.getElementById('importFileInput').click(); }
@@ -1027,6 +1161,7 @@ function openNativeDatePicker(){
 function saveEditExpense(){
   const e = expenses.find(x=>x.id===editingExpenseId);
   if(!e) return;
+  e.type = editingType;
   e.dateISO = document.getElementById('ef_date').value;
   e.time = document.getElementById('ef_time').value;
   e.note = document.getElementById('ef_note').value.trim() || 'Xarajat';
@@ -1047,8 +1182,9 @@ function saveVoiceItems(){
   const now = new Date();
   voiceItems.forEach(it=>{
     if(!it.amount || it.amount<=0) return;
+    const type = it.type || 'expense';
     expenses.push({
-      id: uid(), amount: it.amount, note: it.note || 'Xarajat', categoryKey: it.categoryKey || 'boshqa',
+      id: uid(), amount: it.amount, note: it.note || (type==='income'?'Kirim':'Xarajat'), categoryKey: it.categoryKey || (type==='income'?'boshqa_kirim':'boshqa'), type,
       dateISO: todayISO(), time: pad(now.getHours())+':'+pad(now.getMinutes())
     });
   });
@@ -1064,30 +1200,60 @@ function saveCategory(){
   if(!name) return;
   if(editingCategoryKey){
     const cat = catByKey(editingCategoryKey);
-    cat.icon = icon; cat.name = name; cat.color = categorySwatchColor; cat.bg = categorySwatchColor+'22';
+    cat.icon = icon; cat.name = name; cat.color = categorySwatchColor; cat.bg = categorySwatchColor+'22'; cat.type = categoryModalType;
   } else {
     const key = 'c_'+Date.now();
-    categories.push({key, name, icon, color: categorySwatchColor, bg: categorySwatchColor+'22'});
+    categories.push({key, name, icon, color: categorySwatchColor, bg: categorySwatchColor+'22', type: categoryModalType});
   }
   persistCategories();
   hideOverlay('categoryOverlay');
   renderAll();
 }
 function deleteCategory(){
-  if(!editingCategoryKey || editingCategoryKey==='boshqa') return;
-  expenses.forEach(e=>{ if(e.categoryKey===editingCategoryKey) e.categoryKey='boshqa'; });
+  if(!editingCategoryKey || editingCategoryKey==='boshqa' || editingCategoryKey==='boshqa_kirim') return;
+  const deletedType = catByKey(editingCategoryKey).type;
+  const fallbackKey = deletedType==='income' ? 'boshqa_kirim' : 'boshqa';
+  expenses.forEach(e=>{ if(e.categoryKey===editingCategoryKey) e.categoryKey=fallbackKey; });
   categories = categories.filter(c=>c.key!==editingCategoryKey);
   persistExpenses(); persistCategories();
   hideOverlay('categoryOverlay');
   renderAll();
 }
 
-function exportBackup(){
+async function exportBackup(){
   const data = JSON.stringify({expenses, categories}, null, 2);
+  const filename = 'hisobchi-zaxira-'+todayISO()+'.json';
+
+  if(isNativeApp){
+    try{
+      const { Filesystem } = window.Capacitor.Plugins;
+      const { Share } = window.Capacitor.Plugins;
+      // Write to the app's cache dir first (always writable, no permission
+      // needed), then hand it to the native Share sheet so the person
+      // picks exactly where it ends up (Drive, Files, Telegram, etc.)
+      // and therefore always knows where it was saved.
+      const written = await Filesystem.writeFile({
+        path: filename,
+        data: data,
+        directory: 'CACHE',
+        encoding: 'utf8'
+      });
+      await Share.share({
+        title: 'Hisobchi — zaxira nusxa',
+        text: 'Xarajatlar zaxira nusxasi: ' + filename,
+        url: written.uri,
+        dialogTitle: 'Zaxira nusxani qayerga saqlaysiz?'
+      });
+    }catch(e){
+      alert('Zaxira nusxani ulashishda xatolik: ' + (e && e.message ? e.message : e));
+    }
+    return;
+  }
+
   const blob = new Blob([data], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'hisobchi-zaxira-'+todayISO()+'.json';
+  a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
@@ -1124,15 +1290,15 @@ function clearAllData(){
    2) Plain browser (GitHub Pages, desktop Chrome, PWA) -> uses the
       standard Web Speech API (webkitSpeechRecognition).
    ============================================================ */
-const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+// isNativeApp is defined near the top of the script.
 let listening = false;
 
 function finishListening(text){
   listening = false;
   document.getElementById('micBtn').classList.remove('listening');
   if(text){
-    voiceItems = parseTranscriptMulti(text);
-    if(voiceItems.length===0) voiceItems = [{amount:0, note:text, categoryKey:'boshqa'}];
+    voiceItems = parseTranscriptMulti(text, voiceSessionType);
+    if(voiceItems.length===0) voiceItems = [{amount:0, note:text, categoryKey: voiceSessionType==='income'?'boshqa_kirim':'boshqa', type: voiceSessionType}];
     document.getElementById('micStatus').textContent = 'Tayyor — quyida tekshirib saqlang';
     renderVoiceItems();
   } else {
