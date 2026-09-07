@@ -267,7 +267,7 @@ body{
     <div class="transcript-box" id="transcriptBox"></div>
     <div id="voiceItemsWrap"></div>
     <div style="display:flex;gap:8px;margin-top:6px;">
-      <button class="btn btn-ghost" data-action="add-voice-item" style="display:none;" id="addVoiceItemBtn">+ Yana band qo‘shish</button>
+      <button class="btn btn-ghost" data-action="add-voice-item" id="addVoiceItemBtn">✏️ Qo‘lda qo‘shish</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;">
       <button class="btn btn-ghost" data-action="close-overlay" data-overlay="voiceOverlay">Bekor qilish</button>
@@ -893,7 +893,7 @@ function renderVoiceItems(){
       </select>
     </div>
   `).join('');
-  document.getElementById('addVoiceItemBtn').style.display = voiceItems.length ? 'block' : 'none';
+  document.getElementById('addVoiceItemBtn').style.display = 'block';
   document.getElementById('saveVoiceBtn').style.display = voiceItems.length ? 'block' : 'none';
 }
 
@@ -1159,27 +1159,25 @@ if(isNativeApp){
       voiceItems = []; renderVoiceItems();
       listening = true;
       document.getElementById('micBtn').classList.add('listening');
-      document.getElementById('micStatus').textContent = 'Tinglayapman... aytib bo‘lgach yana bosing';
+      document.getElementById('micStatus').textContent = 'Ovoz oynasi ochilmoqda... gapiring';
 
-      await NativeSR.addListener('partialResults', (data)=>{
-        if(data.matches && data.matches.length){
-          document.getElementById('transcriptBox').textContent = data.matches[0];
-        }
-      });
-      await NativeSR.start({ language: micLang, partialResults: true, popup: false, maxResults: 1 });
-    }catch(e){
-      document.getElementById('micStatus').textContent = 'Xatolik: ovozni tanib bo‘lmadi.';
+      // popup:true opens Google's own speech dialog, which auto-detects
+      // when you stop talking and returns the finished text directly —
+      // far more reliable inside a WebView than manual start/stop.
+      const result = await NativeSR.start({ language: micLang, popup: true, maxResults: 1, partialResults: false });
       listening = false;
       document.getElementById('micBtn').classList.remove('listening');
+      const text = (result && result.matches && result.matches.length) ? result.matches[0] : '';
+      if(text) document.getElementById('transcriptBox').textContent = text;
+      finishListening(text);
+    }catch(e){
+      listening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micStatus').textContent = 'Ovoz oynasi yopildi yoki hech narsa aytilmadi. Qayta urinib ko‘ring.';
     }
   }
-  async function stopNative(){
-    try{ await NativeSR.stop(); await NativeSR.removeAllListeners(); }catch(e){}
-    const text = document.getElementById('transcriptBox').textContent.trim();
-    finishListening(text);
-  }
   document.getElementById('micBtn').addEventListener('click', ()=>{
-    if(listening){ stopNative(); } else { startNative(); }
+    if(!listening){ startNative(); }
   });
 
 } else {
