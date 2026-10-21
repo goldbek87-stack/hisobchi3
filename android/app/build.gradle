@@ -4,7 +4,7 @@ android {
     namespace = "uz.hisobchi.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "uz.hisobchi.app"
+        applicationId "uz.hisobchi.ovoz"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
